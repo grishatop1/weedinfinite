@@ -1,0 +1,32 @@
+{
+    "0": {
+        "name": "Cobblestone",
+        "texture": "textures/cobble.png",
+        "collision": true
+    },
+    "1": {
+        "name": "Dirt",
+        "texture": "textures/dirt.png",
+        "collision": true
+    },
+    "2": {
+        "name": "Grass",
+        "texture": "textures/grass.png",
+        "collision": true
+    },
+    "3": {
+        "name": "Stone",
+        "texture": "textures/stone.png",
+        "collision": true
+    },
+    "4": {
+        "name": "Sign",
+        "texture": "textures/sign.png",
+        "collision": false
+    },
+    "5": {
+        "name": "Weed",
+        "texture": "textures/weed.png",
+        "collision": false
+    }
+}
