@@ -32,8 +32,14 @@ class Terrain:
 	def __init__(self):
 		self.loaded_chunks = {} #4
 		self.selected_texture = 0
-		self.noise_terrain = PerlinNoiseFactory(1, 2)
-		self.noise_caves = PerlinNoiseFactory(2, 6)
+
+		self.noise_biomes = PerlinNoiseFactory(1, 1)
+
+		self.noise_plane = PerlinNoiseFactory(1, 3)
+		self.noise_desert = PerlinNoiseFactory(1, 1)
+		self.noise_mountain = PerlinNoiseFactory(1, 2)
+		
+		self.noise_caves = PerlinNoiseFactory(2, 5)
 		self.generator = Worker(self.generateChunk)
 
 	def generateChunk(self, lockin, lockout):
@@ -43,35 +49,87 @@ class Terrain:
 			chunks[(cx,cy)] = {}
 
 			if cy == 0:
-				for x in range(CHUNK_TILE):
-					xo = x*TILE + cx*CHUNK
-					n = self.noise_terrain(xo/CHUNK)
-					no = n * 1000
-					yo = round(no/TILE)*TILE + cy*CHUNK
 
-					#Place grass block
-					yoc = yo//CHUNK
-					if (cx,yoc) not in chunks:
-						chunks[(cx,yoc)] = {}
-					chunks[(cx,yoc)][(xo,yo)] = {"id": 2}
+				biome_n = self.noise_biomes(cx/10)
+				
+				if biome_n < 0.2:
+					#Planes
+					for x in range(CHUNK_TILE):
+						xo = x*TILE + cx*CHUNK
+						n = self.noise_plane(xo/CHUNK)
+						no = n * 1000
+						yo = round(no/TILE)*TILE + cy*CHUNK
 
-					#Place grass
-					if random.randint(0,1):
-						yos = yo-TILE
-						yocs = yos//CHUNK
-						if (cx,yocs) not in chunks:
-							chunks[(cx,yocs)] = {}
-						chunks[(cx,yocs)][(xo,yos)] = {"id": 5}
-
-
-					#Place everything below grass block
-					for i, y in enumerate(range(yo+TILE, CHUNK, TILE)):
-						yoc = y//CHUNK
+						#Place grass block
+						yoc = yo//CHUNK
 						if (cx,yoc) not in chunks:
 							chunks[(cx,yoc)] = {}
-						if i < random.randint(4,7):
-							chunks[(cx,yoc)][(xo,y)] = {"id": 1}
-						else:
+						chunks[(cx,yoc)][(xo,yo)] = {"id": 2}
+
+						#Place grass
+						if random.randint(0,1):
+							yos = yo-TILE
+							yocs = yos//CHUNK
+							if (cx,yocs) not in chunks:
+								chunks[(cx,yocs)] = {}
+							chunks[(cx,yocs)][(xo,yos)] = {"id": 5}
+
+
+						#Place everything below grass block
+						for i, y in enumerate(range(yo+TILE, CHUNK, TILE)):
+							yoc = y//CHUNK
+							if (cx,yoc) not in chunks:
+								chunks[(cx,yoc)] = {}
+							if i < random.randint(4,7):
+								chunks[(cx,yoc)][(xo,y)] = {"id": 1}
+							else:
+								chunks[(cx,yoc)][(xo,y)] = {"id": 3}
+				elif biome_n < 0.4:
+					#Desert
+					for x in range(CHUNK_TILE):
+						xo = x*TILE + cx*CHUNK
+						n = self.noise_desert(xo/CHUNK)
+						no = n * 500
+						yo = round(no/TILE)*TILE + cy*CHUNK
+
+						#Place sand block
+						yoc = yo//CHUNK
+						if (cx,yoc) not in chunks:
+							chunks[(cx,yoc)] = {}
+						chunks[(cx,yoc)][(xo,yo)] = {"id": 6}
+
+						#Place below sand
+						for i, y in enumerate(range(yo+TILE, CHUNK, TILE)):
+							yoc = y//CHUNK
+							if (cx,yoc) not in chunks:
+								chunks[(cx,yoc)] = {}
+							if i < random.randint(9,11):
+								chunks[(cx,yoc)][(xo,y)] = {"id": 6}
+							else:
+								chunks[(cx,yoc)][(xo,y)] = {"id": 3}
+				elif biome_n < 1:
+					#Mountains
+					for x in range(CHUNK_TILE):
+						xo = x*TILE + cx*CHUNK
+						n = self.noise_desert(xo/CHUNK)
+						no = n * 3000
+						yo = round(no/TILE)*TILE + cy*CHUNK
+
+						#Place stone block
+						yoc = yo//CHUNK
+						if (cx,yoc) not in chunks:
+							chunks[(cx,yoc)] = {}
+						chunks[(cx,yoc)][(xo,yo)] = {"id": 3}
+
+						#Place snow if height is bigger than 30 tiles
+						if yo < TILE*29:
+							chunks[(cx,yoc)][(xo,yo-TILE)] = {"id": 7}
+
+						#Place below stone
+						for i, y in enumerate(range(yo+TILE, CHUNK, TILE)):
+							yoc = y//CHUNK
+							if (cx,yoc) not in chunks:
+								chunks[(cx,yoc)] = {}
 							chunks[(cx,yoc)][(xo,y)] = {"id": 3}
 
 			elif cy > -1:
@@ -201,8 +259,8 @@ class Player:
 		self.y = y
 		self.xo = x
 		self.yo = y
-		self.w = 45
-		self.h = 90
+		self.w = 30
+		self.h = 70
 		self.color = pygame.Color("pink")
 		self.velX = 0.3
 		self.velY = 0
@@ -324,12 +382,18 @@ GRAY = pygame.Color("gray")
 def commander():
 	while True:
 		try:
-			x,y = input().split(":")
-			game.p.x, game.p.y = int(x), int(y)
-		except:
-			print("Wrong format.")
+			data = input()
+			x, y = data.split(";")
+			game.p.x, game.p.y = int(x)*TILE, int(y)*TILE
+		except EOFError as e:
+			print(end="")
 
 threading.Thread(target=commander, daemon=True).start()
+
+def autoDeleteWorld():
+	dir = 'world/'
+	for f in os.listdir(dir):
+		os.remove(os.path.join(dir, f))
 
 class Game:
 	def __init__(self):
@@ -383,14 +447,17 @@ class Game:
 
 			fps_txt = font.render(str(int(fpsClock.get_fps())), True, BLACK)
 			self.win.blit(fps_txt, (0, 0))
-			pos_txt = font.render(f"X:{int(self.c.x//TILE)}  Y:{int(self.c.y//TILE)}", True, BLACK)
+			pos_txt = font.render(f"Block X:{int(self.p.x//TILE)}  Y:{int(self.p.y//TILE)}", True, BLACK)
 			self.win.blit(pos_txt, (0, 30))
+			posc_txt = font.render(f"Chunk X:{int(self.p.x//CHUNK)}  Y:{int(self.p.y//CHUNK)}", True, BLACK)
+			self.win.blit(posc_txt, (0, 60))
 			tx_txt = font.render(f"Texture: {self.tx.blocks[str(self.t.selected_texture)]['name']}", True, BLACK)
-			self.win.blit(tx_txt, (0, 60))
+			self.win.blit(tx_txt, (0, 90))
 
 
 			pygame.display.flip()
 
 if __name__ == "__main__":
+	autoDeleteWorld()
 	game = Game()
 	game.main()

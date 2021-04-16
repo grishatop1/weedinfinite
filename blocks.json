@@ -28,5 +28,15 @@
         "name": "Weed",
         "texture": "textures/weed.png",
         "collision": false
+    },
+    "6": {
+        "name": "Sand",
+        "texture": "textures/sand.png",
+        "collision": true
+    },
+    "7": {
+        "name": "Snow",
+        "texture": "textures/snow.png",
+        "collision": true
     }
 }
