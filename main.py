@@ -84,13 +84,25 @@ class Terrain:
 								chunks[(cx,yoc)][(xo,y)] = {"id": 1}
 							else:
 								chunks[(cx,yoc)][(xo,y)] = {"id": 3}
+						
+						#Place below chunk
+						yo = yo + CHUNK
+						yoc = yo//CHUNK
+						if yoc == 0:
+							for y in range(yo, CHUNK, TILE):
+								try:
+									del chunks[(cx,yoc)][(xo,y)]
+								except:
+									pass
+
+
 				elif biome_n < 0.4:
 					#Desert
 					for x in range(CHUNK_TILE):
 						xo = x*TILE + cx*CHUNK
 						n = self.noise_desert(xo/CHUNK)
 						no = n * 500
-						yo = round(no/TILE)*TILE + cy*CHUNK
+						yo = -abs(round(no/TILE)*TILE + cy*CHUNK)
 
 						#Place sand block
 						yoc = yo//CHUNK
@@ -113,7 +125,7 @@ class Terrain:
 						xo = x*TILE + cx*CHUNK
 						n = self.noise_desert(xo/CHUNK)
 						no = n * 3000
-						yo = round(no/TILE)*TILE + cy*CHUNK
+						yo = max(round(no/TILE)*TILE + cy*CHUNK, 10)
 
 						#Place stone block
 						yoc = yo//CHUNK
@@ -122,7 +134,7 @@ class Terrain:
 						chunks[(cx,yoc)][(xo,yo)] = {"id": 3}
 
 						#Place snow if height is bigger than 30 tiles
-						if yo < TILE*29:
+						if yo < -TILE*29:
 							chunks[(cx,yoc)][(xo,yo-TILE)] = {"id": 7}
 
 						#Place below stone
