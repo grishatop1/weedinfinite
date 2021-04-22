@@ -209,6 +209,12 @@ class Terrain:
 				del self.loaded_chunks[(x,y)]
 
 	def place(self):
+
+		mox, moy = game.c.reOffset(game.xm, game.ym)
+		x_tile, y_tile = mox//TILE*TILE, moy//TILE*TILE
+		pygame.draw.rect(game.win, BLACK, (*game.c.offset(x_tile, y_tile), TILE, TILE), 1)
+
+
 		if game.click[0]:
 			mox, moy = game.c.reOffset(game.xm, game.ym)
 			x_tile, y_tile = mox//TILE*TILE, moy//TILE*TILE
@@ -238,8 +244,8 @@ class Terrain:
 
 	def update(self):
 		self.loadChunks()
-		self.place()
 		self.draw()
+		self.place()
 		self.unloadChunks()
 
 class Blocks:
