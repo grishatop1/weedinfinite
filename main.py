@@ -124,8 +124,8 @@ class Terrain:
 					for x in range(CHUNK_TILE):
 						xo = x*TILE + cx*CHUNK
 						n = self.noise_desert(xo/CHUNK)
-						no = n * 3000
-						yo = max(round(no/TILE)*TILE + cy*CHUNK, 10)
+						no = n * 2000
+						yo = -abs(round(no/TILE)*TILE + cy*CHUNK)
 
 						#Place stone block
 						yoc = yo//CHUNK
