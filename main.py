@@ -10,6 +10,8 @@ import json
 from perlin import PerlinNoiseFactory
 import random
 import multiprocessing
+from gui import *
+from settings import *
 
 
 class Camera:
@@ -19,8 +21,8 @@ class Camera:
 		self.vel = 3
 
 	def move(self):
-		self.x = game.p.x - (width/2) + game.p.w/2
-		self.y = game.p.y - (height/2) + game.p.h/2
+		self.x = game.p.x - (WIDTH/2) + game.p.w/2
+		self.y = game.p.y - (HEIGHT/2) + game.p.h/2
 
 	def offset(self, x, y):
 		return x-self.x, y-self.y
@@ -133,7 +135,7 @@ class Terrain:
 							chunks[(cx,yoc)] = {}
 						chunks[(cx,yoc)][(xo,yo)] = {"id": 3}
 
-						#Place snow if height is bigger than 30 tiles
+						#Place snow if HEIGHT is bigger than 30 tiles
 						if yo < -TILE*29:
 							chunks[(cx,yoc)][(xo,yo-TILE)] = {"id": 7}
 
@@ -169,8 +171,8 @@ class Terrain:
 
 	def getTilesInScreen(self):
 		tiles = []
-		for x in range(0, width+TILE, TILE):
-			for y in range(0, height+TILE, TILE):
+		for x in range(0, WIDTH+TILE, TILE):
+			for y in range(0, HEIGHT+TILE, TILE):
 				xg, yg = game.c.reOffset(x,y)
 				xbg, ybg = xg//TILE*TILE, yg//TILE*TILE
 
@@ -215,13 +217,13 @@ class Terrain:
 		pygame.draw.rect(game.win, BLACK, (*game.c.offset(x_tile, y_tile), TILE, TILE), 1)
 
 
-		if game.click[0]:
+		if game.L_click:
 			mox, moy = game.c.reOffset(game.xm, game.ym)
 			x_tile, y_tile = mox//TILE*TILE, moy//TILE*TILE
 			x_chunk, y_chunk = mox//CHUNK, moy//CHUNK
 			if (x_tile, y_tile) not in self.loaded_chunks[(x_chunk, y_chunk)]:
 				self.loaded_chunks[(x_chunk, y_chunk)][(x_tile, y_tile)] = {"id": self.selected_texture}
-		if game.click[2]:	
+		if game.R_click:	
 			mox, moy = game.c.reOffset(game.xm, game.ym)
 			x_tile, y_tile = mox//TILE*TILE, moy//TILE*TILE
 			x_chunk, y_chunk = mox//CHUNK, moy//CHUNK
@@ -229,9 +231,10 @@ class Terrain:
 				del self.loaded_chunks[(x_chunk, y_chunk)][(x_tile, y_tile)]
 
 	def draw(self):
+		"""
 		for cx, cy in self.loaded_chunks:
 			pygame.draw.rect(game.win, BLACK, (*game.c.offset(cx*CHUNK, cy*CHUNK), CHUNK, CHUNK), 1)
-			
+		"""
 		for x, y in self.getTilesInScreen():
 			xo, yo = game.c.offset(x,y)
 			cx,cy = x//CHUNK, y//CHUNK
@@ -376,16 +379,13 @@ class Worker:
 		except:
 			return
 
-fps = 120
 fpsClock = pygame.time.Clock()
- 
-width, height = 1270, 720
 
 TILE = 40
 CHUNK_TILE = 40
 CHUNK = TILE*CHUNK_TILE
 
-TILEX, TILEY = width//TILE, height//TILE
+TILEX, TILEY = WIDTH//TILE, HEIGHT//TILE
 
 SEED = 69420
 random.seed(SEED)
@@ -416,36 +416,47 @@ def autoDeleteWorld():
 class Game:
 	def __init__(self):
 		pygame.init()
-		self.win = pygame.display.set_mode((width, height))
+		self.win = pygame.display.set_mode((WIDTH, HEIGHT))
 		self.c = Camera()
 		self.t = Terrain()
 		self.tx = Blocks()
 		self.p = Player(0,-400)
+		self.gui = GUIManager(self)
 
 		self.key = None
-		self.click = None
+		self.L_click = False
+		self.R_click = False
 		self.xm, self.xy = 0, 0
 
 		self.d = 0
+		self.run = True
 
 	def main(self):
 		small_font = pygame.font.SysFont("Arial", 7)
 		font = pygame.font.SysFont("Arial", 25)
+		pygame.mouse.set_cursor(*pygame.cursors.arrow)
 
-		run = True
+		self.gui.addButton(5, 675, 100, 40, "QUIT", (0,0,0), self.exit)
 
-		while run:
-			self.d = fpsClock.tick(fps)
+		while self.run:
+			self.d = fpsClock.tick(FPS)
 			self.win.fill((171, 244, 255))
 
 			self.key = pygame.key.get_pressed()
 			self.click = pygame.mouse.get_pressed()
+			if self.click[0]:
+				self.L_click = True
+			if self.click[2]:
+				self.R_click = True
 			self.xm, self.ym = pygame.mouse.get_pos()
+
+			if self.gui.event():
+				self.L_click = False
 		
 			for event in pygame.event.get():
 				if event.type == QUIT:
 					self.t.saveAll()
-					run = False
+					self.run = False
 				if event.type == KEYDOWN:
 					pass
 				if event.type == pygame.MOUSEBUTTONDOWN:
@@ -473,9 +484,18 @@ class Game:
 			self.win.blit(tx_txt, (0, 90))
 
 
+			self.gui.draw()
+
 			pygame.display.flip()
 
+			#Refresh
+			self.L_click = False
+			self.R_click = False
+
+	def exit(self):
+		self.run = False
+
 if __name__ == "__main__":
-	autoDeleteWorld()
+	#autoDeleteWorld()
 	game = Game()
 	game.main()
