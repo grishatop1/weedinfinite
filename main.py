@@ -397,7 +397,7 @@ RED = pygame.Color("red")
 GRAY = pygame.Color("gray")
 
 
-def commander():
+def commander(game):
 	while True:
 		try:
 			data = input()
@@ -405,8 +405,6 @@ def commander():
 			game.p.x, game.p.y = int(x)*TILE, int(y)*TILE
 		except EOFError as e:
 			print(end="")
-
-threading.Thread(target=commander, daemon=True).start()
 
 def autoDeleteWorld():
 	dir = 'world/'
@@ -498,4 +496,5 @@ class Game:
 if __name__ == "__main__":
 	#autoDeleteWorld()
 	game = Game()
+	threading.Thread(target=commander, args=(game,), daemon=True).start()
 	game.main()
