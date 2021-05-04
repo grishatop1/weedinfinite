@@ -2,41 +2,55 @@
     "0": {
         "name": "Cobblestone",
         "texture": "textures/cobble.png",
-        "collision": true
+        "collision": true,
+        "obtainable": true
     },
     "1": {
         "name": "Dirt",
         "texture": "textures/dirt.png",
-        "collision": true
+        "collision": true,
+        "obtainable": true
     },
     "2": {
         "name": "Grass",
         "texture": "textures/grass.png",
-        "collision": true
+        "collision": true,
+        "obtainable": true
     },
     "3": {
         "name": "Stone",
         "texture": "textures/stone.png",
-        "collision": true
+        "collision": true,
+        "obtainable": true
     },
     "4": {
         "name": "Sign",
         "texture": "textures/sign.png",
-        "collision": false
+        "collision": false,
+        "obtainable": true
     },
     "5": {
         "name": "Weed",
         "texture": "textures/weed.png",
-        "collision": false
+        "collision": false,
+        "obtainable": false
     },
     "6": {
         "name": "Sand",
         "texture": "textures/sand.png",
-        "collision": true
+        "collision": true,
+        "obtainable": true
     },
     "7": {
         "name": "Snow",
         "texture": "textures/snow.png",
-        "collision": true
+        "collision": true,
+        "obtainable": true
+    },
+    "8": {
+        "name": "Force Field",
+        "texture": "textures/forcefield.png",
+        "collision": true,
+        "obtainable": false
     }
 }

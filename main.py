@@ -211,11 +211,11 @@ class Terrain:
 				del self.loaded_chunks[(x,y)]
 
 	def place(self):
-
 		mox, moy = game.c.reOffset(game.xm, game.ym)
 		x_tile, y_tile = mox//TILE*TILE, moy//TILE*TILE
 		pygame.draw.rect(game.win, BLACK, (*game.c.offset(x_tile, y_tile), TILE, TILE), 1)
-
+		pos_txt = game.small_font.render(f"X:{x_tile}  Y:{y_tile}", True, BLACK)
+		game.win.blit(pos_txt, game.c.offset(x_tile, y_tile-12))
 
 		if game.L_click:
 			mox, moy = game.c.reOffset(game.xm, game.ym)
@@ -253,8 +253,7 @@ class Terrain:
 
 class Blocks:
 	def __init__(self):
-		self.blocks = None
-		self.count = None
+		self.blocks = {}
 		self.load()
 	
 	def load(self):
@@ -264,9 +263,10 @@ class Blocks:
 			image = pygame.image.load(blocks[block]["texture"]).convert_alpha()
 			image = pygame.transform.scale(image, (TILE, TILE))
 			blocks[block]["image"] = image
-
 		self.blocks = blocks
-		self.count = len(blocks)-1
+
+	def getBlockById(self, _id):
+		return self.blocks[str(_id)]
 
 	def getTextureImage(self, _id):
 		return self.blocks[str(_id)]["image"]
@@ -430,8 +430,8 @@ class Game:
 		self.run = True
 
 	def main(self):
-		small_font = pygame.font.SysFont("Arial", 7)
-		font = pygame.font.SysFont("Arial", 25)
+		self.small_font = pygame.font.SysFont("Arial", 10)
+		self.font = pygame.font.SysFont("Arial", 25)
 		pygame.mouse.set_cursor(*pygame.cursors.arrow)
 
 		self.gui.addButton(5, 675, 100, 40, "QUIT", (0,0,0), self.exit)
@@ -460,25 +460,32 @@ class Game:
 				if event.type == pygame.MOUSEBUTTONDOWN:
 					if event.button == 4:
 						self.t.selected_texture += 1
-						if self.t.selected_texture > self.tx.count:
-							self.t.selected_texture = 0
+						while not self.tx.getBlockById(self.t.selected_texture)["obtainable"]:
+							self.t.selected_texture += 1
+							if self.t.selected_texture > len(self.tx.blocks)-1:
+								self.t.selected_texture = 0
 					elif event.button == 5:
 						self.t.selected_texture -= 1
 						if self.t.selected_texture < 0:
-							self.t.selected_texture = self.tx.count
+							self.t.selected_texture = len(self.tx.blocks)-1
+						while not self.tx.getBlockById(self.t.selected_texture)["obtainable"]:
+							self.t.selected_texture -= 1
+							if self.t.selected_texture < 0:
+								self.t.selected_texture = len(self.tx.blocks)-1
+							
 
 
 			#UPDATE AND RENDER
 			self.t.update()
 			self.p.update()
 
-			fps_txt = font.render(str(int(fpsClock.get_fps())), True, BLACK)
+			fps_txt = self.font.render(str(int(fpsClock.get_fps())), True, BLACK)
 			self.win.blit(fps_txt, (0, 0))
-			pos_txt = font.render(f"Block X:{int(self.p.x//TILE)}  Y:{int(self.p.y//TILE)}", True, BLACK)
+			pos_txt = self.font.render(f"Block X:{int(self.p.x//TILE)}  Y:{int(self.p.y//TILE)}", True, BLACK)
 			self.win.blit(pos_txt, (0, 30))
-			posc_txt = font.render(f"Chunk X:{int(self.p.x//CHUNK)}  Y:{int(self.p.y//CHUNK)}", True, BLACK)
+			posc_txt = self.font.render(f"Chunk X:{int(self.p.x//CHUNK)}  Y:{int(self.p.y//CHUNK)}", True, BLACK)
 			self.win.blit(posc_txt, (0, 60))
-			tx_txt = font.render(f"Texture: {self.tx.blocks[str(self.t.selected_texture)]['name']}", True, BLACK)
+			tx_txt = self.font.render(f"Texture: {self.tx.blocks[str(self.t.selected_texture)]['name']}", True, BLACK)
 			self.win.blit(tx_txt, (0, 90))
 
 
