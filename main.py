@@ -502,6 +502,7 @@ class Game:
 
 if __name__ == "__main__":
 	#autoDeleteWorld()
+	multiprocessing.freeze_support()
 	game = Game()
 	threading.Thread(target=commander, args=(game,), daemon=True).start()
 	game.main()
