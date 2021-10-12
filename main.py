@@ -498,6 +498,7 @@ class Game:
 			self.R_click = False
 
 	def exit(self):
+		self.t.saveAll()
 		self.run = False
 
 if __name__ == "__main__":
